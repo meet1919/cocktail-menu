@@ -1,0 +1,222 @@
+@property --accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #E8A93B;
+}
+
+:root {
+  --bg: #0E0C0B;
+  --text: #F3E9DC;
+  --muted: rgba(243, 233, 220, 0.62);
+  --accent: #E8A93B;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: Inter, system-ui, sans-serif;
+  transition: --accent 0.8s ease;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 400 1rem/1.6 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+body.is-loading { overflow: hidden; }
+
+/* grain */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- preloader ---------- */
+#preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: var(--bg);
+}
+#loader-glass {
+  display: block;
+  width: 200px;
+  height: 300px;
+  overflow: visible;
+}
+.loader-label {
+  font: 500 0.8rem/1 var(--sans);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- layout ---------- */
+.menu {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 48px);
+}
+.content { grid-column: 1; grid-row: 1; position: relative; z-index: 1; }
+
+.stage {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  align-self: start;
+  display: grid;
+  place-items: center;
+}
+.stage svg {
+  position: relative;
+  display: block;
+  height: min(72vh, 620px);
+  width: auto;
+  aspect-ratio: 2 / 3;
+  overflow: visible;
+}
+.glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(closest-side at 50% 55%,
+    color-mix(in srgb, var(--accent) 34%, transparent), transparent 72%);
+}
+
+/* ---------- hero ---------- */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.25rem;
+}
+.eyebrow {
+  font: 500 0.78rem/1 var(--sans);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.hero h1 {
+  font: italic 600 clamp(3rem, 9vw, 7rem)/0.95 var(--serif);
+  letter-spacing: -0.01em;
+}
+.hero-tag { max-width: 26rem; color: var(--muted); font-size: 1.05rem; }
+.scroll-hint {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font: 500 0.72rem/1 var(--sans);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.scroll-hint i {
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transform: rotate(45deg);
+  animation: bounce 1.6s ease-in-out infinite;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(-3px) rotate(45deg); }
+  50% { transform: translateY(4px) rotate(45deg); }
+}
+
+/* ---------- drink sections ---------- */
+.drink {
+  min-height: 150vh;
+  display: flex;
+  align-items: flex-start;
+}
+/* text stays put beside the glass while the drink is being built */
+.drink-inner {
+  max-width: 30rem;
+  position: sticky;
+  top: max(14vh, 5rem);
+  margin-top: 12vh;
+}
+.drink h2 {
+  font: italic 600 clamp(2.4rem, 5vw, 4rem)/1.02 var(--serif);
+}
+.drink .tagline { margin-top: 0.5rem; color: var(--muted); font-size: 1.05rem; }
+.drink .method {
+  margin-top: 1.25rem;
+  font: 500 0.72rem/1.5 var(--sans);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.ingredients { list-style: none; margin-top: 1.5rem; display: grid; gap: 0.2rem; }
+.ingredients li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  font-size: 1.15rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  opacity: 0.35;
+}
+.ingredients li::before {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translateY(-2px);
+}
+.ingredients .amt { font-weight: 500; font-variant-numeric: tabular-nums; }
+
+/* ---------- glass details ---------- */
+.drop {
+  fill: rgba(255, 255, 255, 0.4);
+  animation: slide 7s ease-in infinite;
+}
+@keyframes slide {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 0.5; }
+  80% { opacity: 0.5; }
+  100% { transform: translateY(34px); opacity: 0; }
+}
+
+/* ---------- footer ---------- */
+.footer { text-align: center; padding: 18vh 16px 10vh; }
+.cheers { font: italic 600 clamp(3rem, 8vw, 6rem)/1 var(--serif); }
+.footer-note { margin-top: 1rem; color: var(--muted); font-size: 0.85rem; }
+
+/* ---------- phones ---------- */
+@media (max-width: 767px) {
+  .menu { grid-template-columns: 1fr; }
+  .stage {
+    grid-column: 1;
+    grid-row: 1;
+    height: 50vh;
+    z-index: 2;
+    background: linear-gradient(var(--bg) 86%, transparent);
+  }
+  .stage svg { height: 44vh; }
+  .content { grid-column: 1; grid-row: 2; }
+  .hero { min-height: 60vh; padding-top: 4vh; }
+  .drink-inner { top: calc(50vh + 1rem); margin-top: 4vh; }
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint i, .drop { animation: none; }
+  :root { transition: none; }
+}
