@@ -86,7 +86,7 @@ The scene background is transparent so the page's dark background and the existi
 
 ## 6. Physics
 
-- **World:** cannon-es, gravity set from a tunable constant (starting value −300 cm/s², tuned by eye), fixed timestep 1/60 with at most 3 substeps, body sleeping enabled.
+- **World:** cannon-es, gravity set from a tunable constant (starting value −300 cm/s², tuned by eye), fixed timestep 1/60 with at most 3 substeps, body sleeping disabled (floating bodies must keep receiving buoyancy forces).
 - **Glass colliders:** a floor plane at the inner base, plus a ring of 20 thin box colliders placed along `inner.radiusAt(y)` so the taper and the coupe bowl are respected. The glass is static.
 - **Body cap:** at most 24 bodies live at once. The directors only spawn what the current drink needs, so this is a safety limit.
 
