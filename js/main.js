@@ -5,7 +5,7 @@
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function renderDrinks() {
-    document.getElementById('drinks').innerHTML = Bar.COCKTAILS.map((c, i) => `
+    document.getElementById('drinks').innerHTML = Bar.FEATURED.map((c, i) => `
       <section class="drink" data-index="${i}" id="${c.id}" style="--c:${c.color}">
         <div class="drink-inner">
           <span class="num" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span>
@@ -22,6 +22,9 @@
   }
 
   renderDrinks();
+  Bar.sound.init();
+  Bar.browse.init({ reduced });
+  Bar.cheers.init({ reduced });
 
   // If the animation library could not load, still show a readable menu.
   if (!window.gsap || !window.ScrollTrigger || !Bar.createStage) {

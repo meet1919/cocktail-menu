@@ -11,15 +11,25 @@ function canvasTex(size, draw) {
   return t;
 }
 
-const lemonTop = () => canvasTex(256, (g) => {
-  g.fillStyle = '#F4D35E'; g.beginPath(); g.arc(128, 128, 126, 0, 7); g.fill();
-  g.fillStyle = '#FBE98A'; g.beginPath(); g.arc(128, 128, 108, 0, 7); g.fill();
+// the cut face of a citrus wheel: rind, flesh and white segment lines
+const citrusTop = (rind, flesh, segs) => canvasTex(256, (g) => {
+  g.fillStyle = rind; g.beginPath(); g.arc(128, 128, 126, 0, 7); g.fill();
+  g.fillStyle = flesh; g.beginPath(); g.arc(128, 128, 108, 0, 7); g.fill();
   g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = 5;
-  for (let a = 0; a < 8; a++) {
+  for (let a = 0; a < segs; a++) {
+    const t = a * 2 * Math.PI / segs;
     g.beginPath(); g.moveTo(128, 128);
-    g.lineTo(128 + 108 * Math.cos(a * Math.PI / 4), 128 + 108 * Math.sin(a * Math.PI / 4)); g.stroke();
+    g.lineTo(128 + 108 * Math.cos(t), 128 + 108 * Math.sin(t)); g.stroke();
   }
 });
+
+// a flat citrus wheel of radius r that floats at the surface
+function citrus(tex, sideColor, r) {
+  const top = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5 });
+  const side = new THREE.MeshStandardMaterial({ color: sideColor, roughness: 0.5 });
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.35, 40), [side, top, top]);
+  return { mesh, shape: 'box', half: [r * 0.72, 0.18, r * 0.72], mass: 0.6, buoy: { ratio: 1.0, depth: 2.5 } };
+}
 
 const pineappleTex = () => canvasTex(128, (g, s) => {
   g.fillStyle = '#F7C948'; g.fillRect(0, 0, s, s);
@@ -54,11 +64,22 @@ export function createPiece(kind, color) {
       const mesh = new THREE.Mesh(new RoundedBoxGeometry(2.2, 2.2, 2.2, 3, 0.3), glassMaterial({ color: 0xd8ecff, base: 0.3, rim: 0.95, power: 1.6, roughness: 0.12 }));
       return { mesh, shape: 'box', half: [1.1, 1.1, 1.1], mass: 1, buoy: { ratio: 1.8, depth: 1.2 } };
     }
-    case 'lemon': {
-      const top = new THREE.MeshStandardMaterial({ map: lemonTop(), roughness: 0.5 });
-      const side = new THREE.MeshStandardMaterial({ color: 0xf4d35e, roughness: 0.5 });
-      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 0.35, 40), [side, top, top]);
-      return { mesh, shape: 'box', half: [1.3, 0.18, 1.3], mass: 0.6, buoy: { ratio: 1.0, depth: 2.5 } };
+    case 'lemon': return citrus(citrusTop('#F4D35E', '#FBE98A', 8), 0xf4d35e, 1.8);
+    case 'lime': return citrus(citrusTop('#7FB43A', '#C9E58A', 8), 0x7fb43a, 1.65);
+    case 'orange': return citrus(citrusTop('#F28C28', '#FFB45A', 10), 0xf28c28, 2.0);
+    case 'bean': {
+      // a coffee bean: a squashed brown ball with a dark crease along the top
+      const mesh = new THREE.Group();
+      const bean = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 12), new THREE.MeshStandardMaterial({ color: 0x3b2314, roughness: 0.4 }));
+      bean.scale.set(1, 0.62, 0.72);
+      const crease = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.04, 0.07), new THREE.MeshStandardMaterial({ color: 0x120a05, roughness: 0.6 }));
+      crease.position.y = 0.31;
+      mesh.add(bean, crease);
+      return { mesh, shape: 'box', half: [0.5, 0.31, 0.36], mass: 0.1, buoy: { ratio: 2.4, depth: 0.3 } };
+    }
+    case 'sugar': {
+      const mesh = new THREE.Mesh(new RoundedBoxGeometry(1.3, 1.3, 1.3, 2, 0.12), new THREE.MeshStandardMaterial({ color: 0xfaf6ea, roughness: 0.95 }));
+      return { mesh, shape: 'box', half: [0.65, 0.65, 0.65], mass: 0.4, buoy: { ratio: 0.3, depth: 1 } };
     }
     case 'mint':
     case 'basil': {

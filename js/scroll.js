@@ -7,11 +7,12 @@
     gsap.registerPlugin(ScrollTrigger);
     const sections = gsap.utils.toArray('.drink');
     const d = stage.director;
-    const accent = i => document.documentElement.style.setProperty('--accent', Bar.COCKTAILS[i].color);
+    const accent = i => document.documentElement.style.setProperty('--accent', Bar.FEATURED[i].color);
 
     d.onIngredient = (i, j, on) => {
       const li = sections[i].querySelectorAll('li')[j];
-      if (li) gsap.to(li, { opacity: on ? 1 : 0.35, color: on ? Bar.COCKTAILS[i].color : '#F3E9DC', duration: 0.3, overwrite: 'auto' });
+      if (li) gsap.to(li, { opacity: on ? 1 : 0.35, color: on ? Bar.FEATURED[i].color : '#F3E9DC', duration: 0.3, overwrite: 'auto' });
+      if (on) Bar.sound.ingredient(Bar.FEATURED[i].ingredients[j].piece);
       if (Bar.type) Bar.type.lit(i, j, on);
     };
     const triggers = [];
@@ -47,7 +48,7 @@
         gsap.to(d.g, { opacity: on ? 1 : 0, scale: on ? 1 : 0.92, duration: reduced ? 0 : 0.5, overwrite: 'auto' });
         d.setBubbles(on && !reduced);
       });
-      document.documentElement.style.setProperty('--accent', Bar.COCKTAILS[i].color);
+      document.documentElement.style.setProperty('--accent', Bar.FEATURED[i].color);
     }
 
     function build(d, c, section) {
@@ -107,7 +108,7 @@
     }
 
     sections.forEach((section, i) => {
-      const tl = build(stage.groups[i], Bar.COCKTAILS[i], section);
+      const tl = build(stage.groups[i], Bar.FEATURED[i], section);
       ScrollTrigger.create({
         trigger: section,
         start: 'top 50%',

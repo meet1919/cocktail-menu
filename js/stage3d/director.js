@@ -51,7 +51,7 @@ export function createDirector({ THREE, scene, key, physics, controls, drinks })
     }
   }
 
-  function spawn(d, kind, color) {
+  function spawn(d, kind, color, lift = 0) {
     if (kind === 'splash') { pour(d, color, 14); return null; }
     if (kind === 'honey') pour(d, '#E8A93B', 8);
     const def = createPiece(kind, color);
@@ -60,12 +60,22 @@ export function createDirector({ THREE, scene, key, physics, controls, drinks })
     const r = d.glass.inner.radiusAt(d.glass.inner.topY) * 0.3;
     const a = Math.random() * 6.28;
     return physics.add(def, def.mesh, {
-      x: Math.cos(a) * r * Math.random(), y: d.glass.inner.topY + 8, z: Math.sin(a) * r * Math.random()
+      x: Math.cos(a) * r * Math.random(), y: d.glass.inner.topY + 8 + lift, z: Math.sin(a) * r * Math.random()
     });
+  }
+
+  // one ingredient: usually a single piece, or `count` pieces stacked a little apart
+  function spawnIngredient(d, ing) {
+    const n = ing.count || 1;
+    if (n === 1) return spawn(d, ing.piece, d.c.color);
+    const items = [];
+    for (let k = 0; k < n; k++) { const it = spawn(d, ing.piece, d.c.color, k * 2.2); if (it) items.push(it); }
+    return items;
   }
 
   function runEffect(d, on) {
     const name = d.c.effect, inner = d.glass.inner;
+    if (on && window.Bar && Bar.sound) Bar.sound.effect(name);
     if (name === 'honeyDrip') {
       if (!d.strand) {
         const len = 5;
@@ -86,7 +96,7 @@ export function createDirector({ THREE, scene, key, physics, controls, drinks })
           }, k * 150);
         }
         if (!d.rimLemon) {
-          const def = createPiece('lemon', d.c.color);
+          const def = createPiece(d.c.garnish || 'lemon', d.c.color);
           d.rimLemon = def.mesh;
           const r = inner.radiusAt(inner.topY) + 0.2;
           d.rimLemon.position.set(r * Math.sin(FRONT_AZ + 0.5), inner.topY - 0.2, r * Math.cos(FRONT_AZ + 0.5));
@@ -152,7 +162,8 @@ export function createDirector({ THREE, scene, key, physics, controls, drinks })
         if (api.onIngredient) api.onIngredient(i, j, true);
       } else if (!want && has) {
         const it = d.spawned.get(j);
-        if (it) physics.remove(it);
+        if (Array.isArray(it)) it.forEach(p => physics.remove(p));
+        else if (it) physics.remove(it);
         d.spawned.delete(j);
         queue = queue.filter(q => !(q.d === d && q.j === j));
         if (api.onIngredient) api.onIngredient(i, j, false);
@@ -173,7 +184,7 @@ export function createDirector({ THREE, scene, key, physics, controls, drinks })
       const q = queue.shift();
       if (q.d === d && d.spawned.has(q.j)) {
         const ing = d.c.ingredients[q.j];
-        d.spawned.set(q.j, spawn(d, ing.piece, d.c.color));
+        d.spawned.set(q.j, spawnIngredient(d, ing));
       }
     }
     for (let k = streams.length - 1; k >= 0; k--) {
@@ -189,6 +200,16 @@ export function createDirector({ THREE, scene, key, physics, controls, drinks })
     }
     d.liquid.update(dt);
     dr.forEach((o, k) => { if (k !== cur && o.glass.group.visible) o.liquid.update(dt); });
+  };
+
+  // The glass tips over when the browse wave starts, and rights itself afterwards.
+  api.tilt = function (on) {
+    if (cur < 0) return;
+    if (on) {
+      gsap.to(dr[cur].glass.group.rotation, { z: 0.4, duration: 0.8, ease: 'power2.inOut', overwrite: 'auto' });
+    } else {
+      dr.forEach(d => gsap.to(d.glass.group.rotation, { z: 0, duration: 0.6, ease: 'back.out(1.4)', overwrite: 'auto' }));
+    }
   };
 
   api.nudge = function () {

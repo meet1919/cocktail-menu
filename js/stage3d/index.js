@@ -4,13 +4,15 @@ import { createControls } from './controls.js';
 import { createPhysics } from './physics.js';
 import { createDirector } from './director.js';
 
-export async function createStage3D(container, drinks) {
+// `embedded` is for a small extra stage (the browse detail sheet): it must leave the
+// page's own SVG glass alone.
+export async function createStage3D(container, drinks, { embedded = false } = {}) {
   const canvas = document.createElement('canvas');
   canvas.className = 'stage3d';
   container.appendChild(canvas);
   const sc = createScene(canvas, container);
   const svg = document.getElementById('stage-glass');
-  if (svg) svg.style.display = 'none';
+  if (svg && !embedded) svg.style.display = 'none';
 
   let director = null;
   const physics = createPhysics({ onSplash: (x, z, s) => director && director.rippleActive(x, z, s) });
@@ -43,5 +45,5 @@ export async function createStage3D(container, drinks) {
     return { left: x0, top: y0, width: x1 - x0, height: y1 - y0 };
   }
 
-  return { kind: '3d', scene: sc, controls, director, glassRect, bodyCount: physics.count, dispose: () => sc.dispose() };
+  return { kind: '3d', scene: sc, controls, director, glassRect, bodyCount: physics.count, dispose: () => { sc.dispose(); canvas.remove(); } };
 }

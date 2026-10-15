@@ -48,7 +48,7 @@ export function createScene(canvas, container) {
   // render loop, switched off while the stage is off screen or the tab is hidden
   const noAdapt = new URLSearchParams(location.search).has('hq'); // ?hq keeps full quality for testing
   const frameCbs = [], resizeCbs = [];
-  let running = false, visible = true, last = 0, elapsed = 0, ema = 16, windowT = 0;
+  let running = false, visible = true, paused = false, disposed = false, last = 0, elapsed = 0, ema = 16, windowT = 0;
 
   function loop(now) {
     const raw = (now - last) / 1000 || 0.016;
@@ -65,11 +65,13 @@ export function createScene(canvas, container) {
     }
   }
   function updateRun() {
-    const should = visible && !document.hidden;
+    if (disposed) return;
+    const should = visible && !paused && !document.hidden;
     if (should && !running) { running = true; last = performance.now(); renderer.setAnimationLoop(loop); }
     else if (!should && running) { running = false; renderer.setAnimationLoop(null); }
   }
-  new IntersectionObserver(es => { visible = es[0].isIntersecting; updateRun(); }).observe(container);
+  const io = new IntersectionObserver(es => { visible = es[0].isIntersecting; updateRun(); });
+  io.observe(container);
   document.addEventListener('visibilitychange', updateRun);
 
   function resize() {
@@ -80,7 +82,8 @@ export function createScene(canvas, container) {
     camera.updateProjectionMatrix();
     resizeCbs.forEach(f => f());
   }
-  new ResizeObserver(resize).observe(container);
+  const ro = new ResizeObserver(resize);
+  ro.observe(container);
   resize();
   updateRun();
 
@@ -101,6 +104,16 @@ export function createScene(canvas, container) {
     onFrame: f => frameCbs.push(f),
     onResize: f => resizeCbs.push(f),
     degrade,
-    dispose() { renderer.setAnimationLoop(null); renderer.dispose(); }
+    // stop rendering while something else (the browse view) covers the stage
+    setPaused(on) { paused = !!on; updateRun(); },
+    dispose() {
+      disposed = true;
+      io.disconnect();
+      ro.disconnect();
+      document.removeEventListener('visibilitychange', updateRun);
+      renderer.setAnimationLoop(null);
+      renderer.dispose();
+      renderer.forceContextLoss();
+    }
   };
 }

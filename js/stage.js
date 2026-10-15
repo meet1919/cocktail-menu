@@ -10,7 +10,7 @@
     const defs = el('defs');
     svg.appendChild(defs);
 
-    const groups = Bar.COCKTAILS.map((c, i) => {
+    const groups = Bar.FEATURED.map((c, i) => {
       const G = GLASSES[c.glass];
       const fy = f => levelY(G, f);
       const hw = y => halfWidth(c.glass, y);

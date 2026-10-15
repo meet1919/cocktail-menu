@@ -65,6 +65,7 @@
     gsap.set(eyeChars, { yPercent: 0, opacity: 0 });
     gsap.set('.hero-tag', { opacity: 0, y: 24 });
     gsap.set('.scroll-hint', { opacity: 0 });
+    gsap.set('.hero-cta', { opacity: 0, y: 18 });
     gsap.set('.hero-bg', { opacity: 0, xPercent: -8 });
 
     const tl = gsap.timeline({ paused: true, defaults: { ease: 'power4.out' } });
@@ -73,6 +74,7 @@
       .to(chars, { yPercent: 0, rotate: 0, duration: 1.1, stagger: 0.05 }, 0.25)
       .fromTo('.hero .liquid .ci', { '--f': '-10%' }, { '--f': '110%', duration: 1.5, stagger: 0.08, ease: 'power2.inOut' }, 1.0)
       .to('.hero-tag', { opacity: 1, y: 0, duration: 0.9 }, 1.1)
+      .to('.hero-cta', { opacity: 1, y: 0, duration: 0.9 }, 1.4)
       .to('.scroll-hint', { opacity: 1, duration: 0.8 }, 1.7)
       .add(() => {
         // the liquid keeps gently sloshing inside the letters
@@ -87,7 +89,28 @@
   }
 
   function initDrinks() {
-    document.querySelectorAll('.drink').forEach(sec => {
+    const items = [];
+    const total = document.querySelectorAll('.drink').length;
+    let shown = -1;
+
+    // Only the drink that is currently in the glass shows its details.
+    function show(i) {
+      if (i === shown) return;
+      const prev = shown;
+      shown = i;
+      if (prev >= 0) {
+        const it = items[prev];
+        gsap.to(it.inner, { opacity: 0, duration: 0.25, overwrite: true, onComplete: () => { if (shown !== prev) it.tl.pause(0); } });
+      }
+      if (i >= 0) {
+        const it = items[i];
+        gsap.killTweensOf(it.inner);
+        gsap.set(it.inner, { opacity: 1 });
+        it.tl.restart();
+      }
+    }
+
+    document.querySelectorAll('.drink').forEach((sec, idx) => {
       const chars = splitChars(sec.querySelector('h2'));
       const tag = sec.querySelector('.tagline'), method = sec.querySelector('.method');
       const rule = sec.querySelector('.rule'), wipe = sec.querySelector('.wipe'), num = sec.querySelector('.num');
@@ -97,6 +120,8 @@
         if (amt) amt.dataset.full = amt.textContent;
       });
 
+      const inner = sec.querySelector('.drink-inner');
+      gsap.set(inner, { opacity: 0 });
       gsap.set(chars, { yPercent: 115, rotate: 6 });
       gsap.set(tag, { opacity: 0, y: 16 });
       gsap.set(method, { opacity: 0, letterSpacing: '0.6em' });
@@ -115,13 +140,18 @@
         .to(rule, { scaleX: 1, duration: 0.8 }, '<')
         .to(lis, { x: 0, duration: 0.7, stagger: 0.08 }, '<0.1');
 
+      items[idx] = { inner, tl };
+      // same range as the glass, so the text and the glass always switch together
       ScrollTrigger.create({
-        trigger: sec, start: 'top 72%',
-        onEnter: () => tl.play(),
-        onLeaveBack: () => tl.reverse()
+        trigger: sec, start: 'top 50%', end: 'bottom 80%',
+        onEnter: () => show(idx),
+        onEnterBack: () => show(idx),
+        onLeaveBack: () => show(idx - 1),
+        // past the last drink the details go away, so they never show in the Cheers section
+        onLeave: () => { if (idx === total - 1) show(-1); }
       });
-      gsap.to(num, {
-        yPercent: -28, ease: 'none',
+      gsap.fromTo(num, { yPercent: 14 }, {
+        yPercent: -6, ease: 'none',
         scrollTrigger: { trigger: sec, start: 'top bottom', end: 'bottom top', scrub: true }
       });
     });

@@ -20,7 +20,7 @@
     let timer;
     try {
       const timeout = new Promise((_, rej) => { timer = setTimeout(() => rej(new Error('3D load timed out')), 6000); });
-      const run = import('./stage3d/index.js').then(m => m.createStage3D(container, Bar.COCKTAILS));
+      const run = import('./stage3d/index.js').then(m => m.createStage3D(container, Bar.FEATURED));
       return await Promise.race([run, timeout]);
     } catch (err) {
       console.warn('3D stage unavailable, using the SVG glass.', err);
