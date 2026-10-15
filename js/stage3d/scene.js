@@ -14,34 +14,34 @@ function radialTexture(stops) {
 }
 
 export function createScene(canvas, container) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
   const maxDpr = innerWidth < 768 ? 1.5 : 2;
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDpr));
-  renderer.setClearColor(0x000000, 0);
+  renderer.setClearColor(0x0e0c0b, 1);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.localClippingEnabled = true;
 
   const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x0e0c0b, 28, 62);
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.65;
+  scene.environmentIntensity = 0.4;
 
   const camera = new THREE.PerspectiveCamera(35, 1, 1, 300);
 
-  const key = new THREE.SpotLight(0xffffff, 1800, 90, 0.55, 0.7, 2);
+  const key = new THREE.SpotLight(0xffffff, 450, 90, 0.55, 0.7, 2);
   key.position.set(14, 26, 16);
   key.target.position.set(0, 6, 0);
-  const rim = new THREE.DirectionalLight(0xffffff, 1.2);
+  const rim = new THREE.DirectionalLight(0xffffff, 0.6);
   rim.position.set(-10, 12, -14);
-  scene.add(key, key.target, rim, new THREE.AmbientLight(0xffffff, 0.15));
+  scene.add(key, key.target, rim, new THREE.AmbientLight(0xffffff, 0.08));
 
   // bar counter that fades out toward its edge, plus a soft contact shadow
   const counter = new THREE.Mesh(
     new THREE.CircleGeometry(45, 64),
     new THREE.MeshStandardMaterial({
-      color: 0x15110e, roughness: 0.38, metalness: 0.15, transparent: true,
-      alphaMap: radialTexture([[0, '#fff'], [0.55, '#fff'], [1, '#000']])
+      color: 0x17120f, roughness: 0.6, metalness: 0, envMapIntensity: 0.25
     })
   );
   counter.rotation.x = -Math.PI / 2;
@@ -59,7 +59,7 @@ export function createScene(canvas, container) {
   for (let i = 0; i < 30; i++) {
     const mat = new THREE.SpriteMaterial({
       map: glow, color: new THREE.Color().setHSL(0.07 + Math.random() * 0.05, 0.9, 0.55),
-      transparent: true, opacity: 0.1 + Math.random() * 0.18, blending: THREE.AdditiveBlending, depthWrite: false
+      transparent: true, opacity: 0.1 + Math.random() * 0.18, blending: THREE.AdditiveBlending, depthWrite: false, fog: false
     });
     const s = new THREE.Sprite(mat);
     const a = Math.random() * Math.PI * 2, r = 42 + Math.random() * 14, sz = 4 + Math.random() * 9;
@@ -70,7 +70,18 @@ export function createScene(canvas, container) {
     bokeh.push(s);
   }
 
+  // soft halo behind the glass, tinted with the active drink's colour
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glow, color: 0xe8a93b, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending,
+    depthTest: false, depthWrite: false, fog: false
+  }));
+  halo.position.set(0, 6.5, 0);
+  halo.scale.set(34, 34, 1);
+  halo.renderOrder = -1;
+  scene.add(halo);
+
   // render loop, switched off while the stage is off screen or the tab is hidden
+  const noAdapt = new URLSearchParams(location.search).has('hq'); // ?hq keeps full quality for testing
   const frameCbs = [], resizeCbs = [];
   let running = false, visible = true, last = 0, elapsed = 0, ema = 16, windowT = 0;
 
@@ -81,7 +92,7 @@ export function createScene(canvas, container) {
     bokeh.forEach(s => { s.position.y = s.userData.y0 + Math.sin(elapsed * s.userData.sp + s.userData.ph) * 1.5; });
     frameCbs.forEach(f => f(dt));
     renderer.render(scene, camera);
-    if (!quality.degraded && elapsed > 3) {
+    if (!noAdapt && !quality.degraded && elapsed > 3) {
       ema = ema * 0.95 + dt * 1000 * 0.05;
       windowT += dt;
       if (windowT > 2) { if (ema > 28) degrade(); windowT = 0; }
@@ -120,7 +131,7 @@ export function createScene(canvas, container) {
   }
 
   return {
-    THREE, renderer, scene, camera, key, rim,
+    THREE, renderer, scene, camera, key, rim, halo,
     onFrame: f => frameCbs.push(f),
     onResize: f => resizeCbs.push(f),
     degrade,
