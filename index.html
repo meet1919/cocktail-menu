@@ -34,7 +34,6 @@
 
     <div class="content">
       <header class="hero">
-        <span class="hero-bg" aria-hidden="true">SIP</span>
         <p class="eyebrow">Cocktail menu</p>
         <h1>Sip Happens</h1>
         <p class="hero-tag">Four drinks, made fresh. Scroll to watch each one come together.</p>
@@ -67,6 +66,14 @@
   </footer>
 
   <div id="browse" class="browse" role="dialog" aria-modal="true" aria-labelledby="browse-title" hidden>
+    <div class="browse-backbar" aria-hidden="true">
+      <div class="browse-bottles">
+        <i class="browse-bottle"></i><i class="browse-bottle"></i><i class="browse-bottle"></i>
+        <i class="browse-bottle"></i><i class="browse-bottle"></i><i class="browse-bottle"></i>
+        <i class="browse-bottle"></i><i class="browse-bottle"></i><i class="browse-bottle"></i>
+        <i class="browse-bottle"></i><i class="browse-bottle"></i><i class="browse-bottle"></i>
+      </div>
+    </div>
     <div class="browse-inner">
       <header class="browse-head">
         <div>
@@ -78,7 +85,11 @@
         </button>
       </header>
       <div class="browse-filters" id="browse-filters" role="group" aria-label="Filter by spirit"></div>
-      <div class="browse-grid" id="browse-grid"></div>
+      <section class="browse-stage" aria-label="Cocktails on the bar">
+        <div class="browse-counter" aria-hidden="true"></div>
+        <div class="browse-grid" id="browse-grid" role="group" aria-label="Cocktails on one counter. Scroll horizontally for more drinks."></div>
+        <p class="browse-scroll-hint">Scroll sideways for more drinks <span aria-hidden="true">→</span></p>
+      </section>
     </div>
     <div class="browse-detail" id="browse-detail" role="region" aria-live="polite" hidden></div>
   </div>

@@ -7,7 +7,7 @@
   let overlay, grid, filters, detail, inner, btn, title, pourEl, front, back;
   let isOpen = false, busy = false, pending = null, detailOpen = false;
   let filter = 'All';
-  let lastFocus = null, lastCard = null;
+  let lastFocus = null, lastDrink = null;
 
   const hasGsap = () => !!window.gsap;
   const byId = id => Bar.COCKTAILS.find(c => c.id === id);
@@ -38,11 +38,11 @@
     </svg>`;
   }
 
-  /* ---------- cards, filters, detail ---------- */
-  function cardHTML(c) {
-    return `<button class="card" type="button" data-id="${c.id}" style="--c:${c.color}">
-      ${c.featured ? '<span class="star">Scroll-built</span>' : ''}
-      ${glassSVG(c, 'card-' + c.id, 'card-glass')}
+  /* ---------- drinks, filters, detail ---------- */
+  function drinkHTML(c) {
+    return `<button class="bar-drink" type="button" data-id="${c.id}" style="--c:${c.color}">
+      ${c.featured ? '<span class="star">Featured</span>' : ''}
+      ${glassSVG(c, 'browse-' + c.id, 'bar-drink-glass')}
       <span class="spirit">${esc(c.spirit)}</span>
       <span class="name">${esc(c.name)}</span>
       <span class="tag">${esc(c.tagline)}</span>
@@ -58,21 +58,21 @@
         Surprise me</button>`;
   }
 
-  /* ---------- "Surprise me": the cards flash past like a slot machine and one is picked ---------- */
+  /* ---------- "Surprise me": the drinks flash past like a slot machine and one is picked ---------- */
   let spinning = false;
 
   function surprise() {
     if (spinning || detailOpen) return;
-    const cards = visibleCards();
-    if (!cards.length) return;
-    const target = Math.floor(Math.random() * cards.length);
-    const open = () => showDetail(cards[target].dataset.id, cards[target]);
+    const drinks = visibleDrinks();
+    if (!drinks.length) return;
+    const target = Math.floor(Math.random() * drinks.length);
+    const open = () => showDetail(drinks[target].dataset.id, drinks[target]);
     if (reduced || !hasGsap()) { open(); return; }
 
     const btnEl = filters.querySelector('.surprise');
     spinning = true;
     btnEl.disabled = true;
-    const steps = cards.length * 2 + target + 1;      // two laps, then land on the pick
+    const steps = drinks.length * 2 + target + 1;     // two laps, then land on the pick
     let i = 0, prev = null;
     const end = el => {
       if (prev) prev.classList.remove('spin');
@@ -83,9 +83,9 @@
     const step = () => {
       if (overlay.hidden) { end(null); return; }        // the view was closed mid-spin
       if (prev) prev.classList.remove('spin');
-      const el = cards[i % cards.length];
+      const el = drinks[i % drinks.length];
       el.classList.add('spin');
-      el.scrollIntoView({ block: 'nearest' });
+      el.scrollIntoView({ block: 'nearest', inline: 'center' });
       prev = el;
       i++;
       if (Bar.sound) Bar.sound.play('tick');
@@ -104,7 +104,7 @@
     step();
   }
 
-  const visibleCards = () => [...grid.children].filter(el => !el.hidden);
+  const visibleDrinks = () => [...grid.children].filter(el => !el.hidden);
 
   function applyFilter(s, animate) {
     filter = s;
@@ -112,10 +112,11 @@
     [...grid.children].forEach(el => {
       el.hidden = !(s === 'All' || byId(el.dataset.id).spirit === s);
     });
+    grid.scrollTo({ left: 0, behavior: reduced ? 'auto' : 'smooth' });
     if (!hasGsap()) return;
     gsap.killTweensOf(grid.children);
     if (animate && !reduced) {
-      gsap.fromTo(visibleCards(), { y: 24, opacity: 0 },
+      gsap.fromTo(visibleDrinks(), { y: 24, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.5, stagger: 0.04, ease: 'power3.out', clearProps: 'transform,opacity' });
     } else {
       gsap.set(grid.children, { clearProps: 'transform,opacity' });
@@ -176,10 +177,10 @@
     if (s && s.kind === '3d' && s.scene && s.scene.setPaused) s.scene.setPaused(on);
   }
 
-  function showDetail(id, card) {
+  function showDetail(id, drinkButton) {
     const c = byId(id);
     if (!c) return;
-    lastCard = card || null;
+    lastDrink = drinkButton || null;
     unmount3D();
     const token = miniToken;
     const three = use3D();
@@ -226,7 +227,7 @@
     detail.hidden = true;
     inner.inert = false;
     if (hasGsap()) gsap.killTweensOf(detail);
-    if (lastCard && lastCard.isConnected && !lastCard.hidden) lastCard.focus({ preventScroll: true });
+    if (lastDrink && lastDrink.isConnected && !lastDrink.hidden) lastDrink.focus({ preventScroll: true });
   }
 
   /* ---------- the glass tips over as the wave starts ---------- */
@@ -282,7 +283,7 @@
     document.body.classList.add('is-browsing');
     document.querySelector('.menu').inert = true;
     document.querySelector('.footer').inert = true;
-    if (animated) gsap.set(visibleCards(), { y: 50, opacity: 0 });
+    if (animated) gsap.set(visibleDrinks(), { y: 50, opacity: 0 });
     title.focus({ preventScroll: true });
     pauseMain(true);
   }
@@ -337,7 +338,7 @@
       .to(w, { a: 1, duration: 0.95, ease: 'power2.in' }, 0.25)
       .add(() => showOverlay(true))
       .to(w, { b: 1, duration: 1.0, ease: 'power2.out' }, '+=0.05')
-      .to(visibleCards(), { y: 0, opacity: 1, duration: 0.7, stagger: 0.05, ease: 'power3.out', clearProps: 'transform,opacity' }, '<0.3');
+      .to(visibleDrinks(), { y: 0, opacity: 1, duration: 0.7, stagger: 0.05, ease: 'power3.out', clearProps: 'transform,opacity' }, '<0.3');
   };
 
   browse.close = function (jumpId) {
@@ -374,7 +375,7 @@
     back = document.getElementById('pour-back');
 
     document.getElementById('browse-count').textContent = Bar.COCKTAILS.length;
-    grid.innerHTML = Bar.COCKTAILS.map(cardHTML).join('');
+    grid.innerHTML = Bar.COCKTAILS.map(drinkHTML).join('');
     buildFilters();
     btn.setAttribute('aria-expanded', 'false');
 
@@ -388,11 +389,16 @@
         applyFilter(chip.dataset.spirit, true);
       }
     });
+    grid.addEventListener('wheel', e => {
+      if (e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX) || grid.scrollWidth <= grid.clientWidth) return;
+      e.preventDefault();
+      grid.scrollLeft += e.deltaY;
+    }, { passive: false });
     grid.addEventListener('click', e => {
-      const card = e.target.closest('.card');
-      if (card && !spinning) {
+      const drink = e.target.closest('.bar-drink');
+      if (drink && !spinning) {
         if (Bar.sound) Bar.sound.play('tick');
-        showDetail(card.dataset.id, card);
+        showDetail(drink.dataset.id, drink);
       }
     });
     detail.addEventListener('click', e => {

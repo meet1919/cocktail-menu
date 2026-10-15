@@ -1,6 +1,6 @@
 (function () {
-  // Motion-graphics typography: letter reveals, liquid-filled hero word, big outlined
-  // numbers, colour wipes, counting amounts and a scroll-speed marquee.
+  // Motion-graphics typography: letter reveals, a liquid-filled hero word, big
+  // outlined numbers, colour wipes, counting amounts and a scroll-speed marquee.
   const type = (Bar.type = { intro: null });
   let active = false;
 
@@ -66,11 +66,8 @@
     gsap.set('.hero-tag', { opacity: 0, y: 24 });
     gsap.set('.scroll-hint', { opacity: 0 });
     gsap.set('.hero-cta', { opacity: 0, y: 18 });
-    gsap.set('.hero-bg', { opacity: 0, xPercent: -8 });
-
     const tl = gsap.timeline({ paused: true, defaults: { ease: 'power4.out' } });
-    tl.to('.hero-bg', { opacity: 1, xPercent: 0, duration: 1.8 }, 0)
-      .to(eyeChars, { opacity: 1, duration: 0.01, stagger: 0.035, ease: 'none' }, 0.1)
+    tl.to(eyeChars, { opacity: 1, duration: 0.01, stagger: 0.035, ease: 'none' }, 0.1)
       .to(chars, { yPercent: 0, rotate: 0, duration: 1.1, stagger: 0.05 }, 0.25)
       .fromTo('.hero .liquid .ci', { '--f': '-10%' }, { '--f': '110%', duration: 1.5, stagger: 0.08, ease: 'power2.inOut' }, 1.0)
       .to('.hero-tag', { opacity: 1, y: 0, duration: 0.9 }, 1.1)
@@ -82,10 +79,6 @@
       });
     type.intro = tl;
 
-    gsap.to('.hero-bg', {
-      xPercent: -22, ease: 'none',
-      scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true }
-    });
   }
 
   function initDrinks() {
