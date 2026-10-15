@@ -46,7 +46,8 @@ export function buildGlass(type) {
   const mat = new THREE.MeshPhysicalMaterial({
     color: 0xffffff, metalness: 0, roughness: 0.04, ior: 1.5, thickness: 0.6,
     transmission: quality.degraded ? 0 : 1, transparent: true,
-    opacity: quality.degraded ? 0.28 : 1, side: THREE.DoubleSide, envMapIntensity: 1.2
+    opacity: quality.degraded ? 0.28 : 1, side: THREE.DoubleSide, envMapIntensity: 1.2,
+    depthWrite: false // lets the transparent liquid inside show through the front wall
   });
   const group = new THREE.Group();
   group.add(new THREE.Mesh(geo, mat));
