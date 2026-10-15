@@ -39,13 +39,11 @@
 
   const container = document.querySelector('.stage');
   const stageSvg = document.getElementById('stage-glass');
-  let stage = null;
   const stageReady = Bar.try3D(container, { reduced })
     .then(s => s || Bar.createStage(stageSvg, { reduced }))
-    .then(s => { stage = s; Bar.stage = s; Bar.initScroll(s, { reduced }); return s; });
+    .then(s => { Bar.stage = s; Bar.initScroll(s, { reduced }); return s; });
 
   Bar.runPreloader({
-    target: () => (stage.kind === '3d' ? stage.glassRect() : stageSvg),
     waitFor: stageReady,
     reduced
   }).then(() => Bar.type.playIntro());

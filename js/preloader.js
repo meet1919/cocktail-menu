@@ -5,7 +5,6 @@
   // Two ice cubes drop into a glass that fills up as the page loads.
   // Resolves once the overlay is gone and scrolling is enabled again.
   Bar.runPreloader = function (opts) {
-    const targetOpt = opts.target;
     const waitFor = opts.waitFor || null;
     const reduced = !!opts.reduced;
     const overlay = document.getElementById('preloader');
@@ -62,15 +61,14 @@
     loader.append(defs, wet, ...cubes.map(c => c.node), fxLayer, body, shine);
 
     // --- progress -> liquid level ---
-    const state = { p: 0, drain: 0 };
+    const state = { p: 0 };
     function render() {
-      const f = (0.1 + 0.75 * state.p) * (1 - state.drain);
+      const f = 0.1 + 0.75 * state.p;
       const y = levelY(G, f);
       liquid.setAttribute('y', y);
       liquid.setAttribute('height', G.bottom - y + 10);
       surface.setAttribute('cy', y);
       surface.setAttribute('rx', hw(y));
-      surface.setAttribute('opacity', 1 - state.drain);
       pctEl.textContent = Math.round(Math.min(1, state.p) * 100);
     }
     render();
@@ -122,30 +120,12 @@
       climb.kill();
       gsap.to(state, { p: 1, duration: 0.4, ease: 'none', onUpdate: render, onComplete: resolve });
     })).then(() => wait(250)).then(() => {
-      // glide the glass onto the stage glass, then empty it for the first drink
-      const L = loader.getBoundingClientRect();
-      const t = typeof targetOpt === 'function' ? targetOpt() : targetOpt;
-      const isRect = !(t instanceof Element);
-      const T = isRect ? t : t.getBoundingClientRect();
-      let s, dx, dy;
-      if (isRect) {
-        // the loader glass occupies x 60-140, y 50-280 of the 200 x 300 svg
-        s = T.height / (L.height * (230 / 300));
-        dx = (T.left + T.width / 2) - (L.left + L.width / 2);
-        dy = (T.top + T.height / 2) - (L.top + L.height * (165 / 300));
-      } else {
-        s = T.width / L.width;
-        dx = (T.left + T.width / 2) - (L.left + L.width / 2);
-        dy = (T.top + T.height / 2) - (L.top + L.height / 2);
-      }
+      // Clear the loader in place so the stage glass is revealed without a handoff.
       return new Promise(resolve => {
         gsap.timeline({ onComplete: resolve })
           .to(label, { opacity: 0, duration: 0.25 }, 0)
-          .to(loader, { x: dx, y: dy, scale: s, duration: 0.9, ease: 'power3.inOut' }, 0.1)
-          .to(overlay, { backgroundColor: 'rgba(14,12,11,0)', duration: 0.7 }, 0.3)
-          .to(cubes.map(c => c.node), { opacity: 0, duration: 0.5 }, 0.5)
-          .to(state, { drain: 1, duration: 0.7, ease: 'power1.inOut', onUpdate: render }, 0.5)
-          .to(loader, { opacity: 0, duration: 0.25 }, '>-0.1');
+          .to(loader, { opacity: 0, duration: 0.45 }, 0.05)
+          .to(overlay, { backgroundColor: 'rgba(14,12,11,0)', duration: 0.7 }, 0.1);
       });
     }).then(finish);
   };
