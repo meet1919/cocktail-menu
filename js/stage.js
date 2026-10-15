@@ -127,6 +127,6 @@
       };
     });
 
-    return { groups, glowEl: document.querySelector('.stage .glow') };
+    return { kind: 'svg', groups, glowEl: document.querySelector('.stage .glow') };
   };
 })();

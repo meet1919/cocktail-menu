@@ -3,6 +3,7 @@
   // scrolling back takes it apart again.
   Bar.initScroll = function (stage, opts) {
     const reduced = !!(opts && opts.reduced);
+    if (stage.kind === '3d') return; // 3D scroll wiring arrives in a later task
     gsap.registerPlugin(ScrollTrigger);
 
     const sections = gsap.utils.toArray('.drink');

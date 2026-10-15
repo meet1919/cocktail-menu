@@ -29,8 +29,16 @@
     return;
   }
 
+  const container = document.querySelector('.stage');
   const stageSvg = document.getElementById('stage-glass');
-  const stage = Bar.createStage(stageSvg, { reduced });
-  Bar.initScroll(stage, { reduced });
-  Bar.runPreloader({ target: stageSvg, reduced });
+  let stage = null;
+  const stageReady = Bar.try3D(container, { reduced })
+    .then(s => s || Bar.createStage(stageSvg, { reduced }))
+    .then(s => { stage = s; Bar.stage = s; Bar.initScroll(s, { reduced }); return s; });
+
+  Bar.runPreloader({
+    target: () => (stage.kind === '3d' ? stage.glassRect() : stageSvg),
+    waitFor: stageReady,
+    reduced
+  });
 })();

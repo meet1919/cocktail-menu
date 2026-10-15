@@ -5,7 +5,8 @@
   // Two ice cubes drop into a glass that fills up as the page loads.
   // Resolves once the overlay is gone and scrolling is enabled again.
   Bar.runPreloader = function (opts) {
-    const target = opts.target;
+    const targetOpt = opts.target;
+    const waitFor = opts.waitFor || null;
     const reduced = !!opts.reduced;
     const overlay = document.getElementById('preloader');
     const loader = document.getElementById('loader-glass');
@@ -13,6 +14,7 @@
     const pctEl = document.getElementById('loader-pct');
 
     const ready = Promise.all([
+      waitFor,
       document.fonts ? document.fonts.ready : null,
       document.readyState === 'complete' ? null : new Promise(r => addEventListener('load', r, { once: true }))
     ]);
@@ -122,10 +124,20 @@
     })).then(() => wait(250)).then(() => {
       // glide the glass onto the stage glass, then empty it for the first drink
       const L = loader.getBoundingClientRect();
-      const T = target.getBoundingClientRect();
-      const s = T.width / L.width;
-      const dx = (T.left + T.width / 2) - (L.left + L.width / 2);
-      const dy = (T.top + T.height / 2) - (L.top + L.height / 2);
+      const t = typeof targetOpt === 'function' ? targetOpt() : targetOpt;
+      const isRect = !(t instanceof Element);
+      const T = isRect ? t : t.getBoundingClientRect();
+      let s, dx, dy;
+      if (isRect) {
+        // the loader glass occupies x 60-140, y 50-280 of the 200 x 300 svg
+        s = T.height / (L.height * (230 / 300));
+        dx = (T.left + T.width / 2) - (L.left + L.width / 2);
+        dy = (T.top + T.height / 2) - (L.top + L.height * (165 / 300));
+      } else {
+        s = T.width / L.width;
+        dx = (T.left + T.width / 2) - (L.left + L.width / 2);
+        dy = (T.top + T.height / 2) - (L.top + L.height / 2);
+      }
       return new Promise(resolve => {
         gsap.timeline({ onComplete: resolve })
           .to(label, { opacity: 0, duration: 0.25 }, 0)
