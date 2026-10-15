@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { createScene } from './scene.js';
-import { buildGlass } from './glass.js';
 import { createControls } from './controls.js';
+import { createPhysics } from './physics.js';
+import { createDirector } from './director.js';
 
 export async function createStage3D(container, drinks) {
   const canvas = document.createElement('canvas');
@@ -11,19 +12,27 @@ export async function createStage3D(container, drinks) {
   const svg = document.getElementById('stage-glass');
   if (svg) svg.style.display = 'none';
 
-  const glass = buildGlass(drinks[0].glass);
-  sc.scene.add(glass.group);
-
+  let director = null;
+  const physics = createPhysics({ onSplash: (x, z, s) => director && director.rippleActive(x, z, s) });
   const controls = createControls({
-    camera: sc.camera, canvas, getHit: () => glass.hit,
-    onNudge: () => {}, onResize: sc.onResize
+    camera: sc.camera, canvas,
+    getHit: () => director && director.activeGlass().hit,
+    onNudge: () => director && director.nudge(),
+    onResize: sc.onResize
   });
-  controls.setFraming(glass.size.h, glass.size.w, true);
-  sc.onFrame(dt => controls.update(dt));
+  director = createDirector({ THREE, scene: sc.scene, key: sc.key, halo: sc.halo, physics, controls, drinks });
+  director.setActive(0, true);
+
+  sc.onFrame(dt => {
+    controls.update(dt);
+    physics.step(dt, director.surfaceY());
+    director.tick(dt);
+  });
 
   // where the glass currently sits on screen (used by the preloader handoff)
   function glassRect() {
-    const R = glass.size.w / 2, H = glass.size.h;
+    const g = director.activeGlass();
+    const R = g.size.w / 2, H = g.size.h;
     const cr = canvas.getBoundingClientRect();
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
     for (const x of [-R, R]) for (const y of [0, H]) for (const z of [-R, R]) {
@@ -34,5 +43,5 @@ export async function createStage3D(container, drinks) {
     return { left: x0, top: y0, width: x1 - x0, height: y1 - y0 };
   }
 
-  return { kind: '3d', scene: sc, controls, glassRect, bodyCount: () => 0, dispose: () => sc.dispose() };
+  return { kind: '3d', scene: sc, controls, director, glassRect, bodyCount: physics.count, dispose: () => sc.dispose() };
 }

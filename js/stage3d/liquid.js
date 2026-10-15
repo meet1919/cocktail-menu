@@ -12,9 +12,10 @@ export function createLiquid(inner, colorHex) {
   const plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), inner.baseY);
 
   // volume: the inner profile, cut off by a clipping plane at the liquid level
-  const pts = [new THREE.Vector2(0, inner.baseY)];
+  const lo = inner.baseY + 0.03; // a hair above the glass floor, so the two never z-fight
+  const pts = [new THREE.Vector2(0, lo)];
   for (let i = 0; i <= 24; i++) {
-    const y = inner.baseY + span * i / 24;
+    const y = lo + (inner.topY - lo) * i / 24;
     pts.push(new THREE.Vector2(inner.radiusAt(y) * 0.97, y));
   }
   const mat = new THREE.MeshPhysicalMaterial({

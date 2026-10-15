@@ -1,9 +1,38 @@
 (function () {
   // One scrubbed timeline per drink section. Scrolling forward builds the drink,
   // scrolling back takes it apart again.
+  // 3D stage: each section reports its scroll progress to the director, which
+  // decides which ingredients are in the glass.
+  function initScroll3D(stage) {
+    gsap.registerPlugin(ScrollTrigger);
+    const sections = gsap.utils.toArray('.drink');
+    const d = stage.director;
+    const accent = i => document.documentElement.style.setProperty('--accent', Bar.COCKTAILS[i].color);
+
+    d.onIngredient = (i, j, on) => {
+      const li = sections[i].querySelectorAll('li')[j];
+      if (li) gsap.to(li, { opacity: on ? 1 : 0.35, color: on ? Bar.COCKTAILS[i].color : '#F3E9DC', duration: 0.3, overwrite: 'auto' });
+    };
+    const triggers = [];
+    // switch drinks, then apply the current progress straight away (a fast jump can
+    // deliver the progress update before the switch)
+    const activate = i => { d.setActive(i); accent(i); if (triggers[i]) d.update(i, triggers[i].progress); };
+
+    sections.forEach((section, i) => {
+      triggers[i] = ScrollTrigger.create({
+        trigger: section, start: 'top 50%', end: 'bottom 80%',
+        onEnter: () => activate(i),
+        onEnterBack: () => activate(i),
+        onLeaveBack: () => activate(Math.max(0, i - 1)),
+        onUpdate: self => d.update(i, self.progress)
+      });
+    });
+    accent(0);
+  }
+
   Bar.initScroll = function (stage, opts) {
     const reduced = !!(opts && opts.reduced);
-    if (stage.kind === '3d') return; // 3D scroll wiring arrives in a later task
+    if (stage.kind === '3d') return initScroll3D(stage);
     gsap.registerPlugin(ScrollTrigger);
 
     const sections = gsap.utils.toArray('.drink');
