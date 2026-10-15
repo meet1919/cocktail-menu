@@ -86,14 +86,16 @@ export function createScene(canvas, container) {
   let running = false, visible = true, last = 0, elapsed = 0, ema = 16, windowT = 0;
 
   function loop(now) {
-    const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
+    const raw = (now - last) / 1000 || 0.016;
+    const dt = Math.min(0.05, raw);
     last = now;
     elapsed += dt;
     bokeh.forEach(s => { s.position.y = s.userData.y0 + Math.sin(elapsed * s.userData.sp + s.userData.ph) * 1.5; });
     frameCbs.forEach(f => f(dt));
     renderer.render(scene, camera);
     if (!noAdapt && !quality.degraded && elapsed > 3) {
-      ema = ema * 0.95 + dt * 1000 * 0.05;
+      // gaps over 250 ms mean the browser throttled or paused us, not that rendering is slow
+      if (raw < 0.25) ema = ema * 0.95 + raw * 1000 * 0.05;
       windowT += dt;
       if (windowT > 2) { if (ema > 28) degrade(); windowT = 0; }
     }

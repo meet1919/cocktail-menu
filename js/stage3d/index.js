@@ -3,6 +3,7 @@ import { createScene } from './scene.js';
 import { createControls } from './controls.js';
 import { createPhysics } from './physics.js';
 import { createDirector } from './director.js';
+import { createAmbientLeaves } from './ambient.js';
 
 export async function createStage3D(container, drinks) {
   const canvas = document.createElement('canvas');
@@ -22,6 +23,7 @@ export async function createStage3D(container, drinks) {
   });
   director = createDirector({ THREE, scene: sc.scene, key: sc.key, halo: sc.halo, physics, controls, drinks });
   director.setActive(0, true);
+  createAmbientLeaves(THREE, sc.scene, sc.onFrame);
 
   sc.onFrame(dt => {
     controls.update(dt);
