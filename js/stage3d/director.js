@@ -1,7 +1,6 @@
 import { buildGlass } from './glass.js';
 import { createPiece } from './pieces.js';
 import { createLiquid } from './liquid.js';
-import { quality } from './quality.js';
 
 const FRONT_AZ = 0.5;     // the camera's starting angle, so effects face the viewer
 const SPAWN_GAP = 0.18;   // seconds between ingredients dropping in
@@ -9,7 +8,7 @@ const MAX_FILL = 0.85;
 
 // Decides what is in the glass at any scroll position. Physics is not
 // reversible, so scrolling back removes pieces and scrolling forward drops them again.
-export function createDirector({ THREE, scene, key, halo, physics, controls, drinks }) {
+export function createDirector({ THREE, scene, key, physics, controls, drinks }) {
   const dr = drinks.map((c, i) => {
     const glass = buildGlass(c.glass);
     const liquid = createLiquid(glass.inner, c.color);
@@ -26,8 +25,7 @@ export function createDirector({ THREE, scene, key, halo, physics, controls, dri
   const api = { onIngredient: null };
 
   function setOpacity(d, o) {
-    const base = quality.degraded ? 0.28 : 1;
-    d.glass.materials.forEach(m => { m.opacity = o * base; });
+    d.glass.materials.forEach(m => { m.opacity = o; });
     d.glass.group.visible = o > 0.01;
   }
 
@@ -140,7 +138,6 @@ export function createDirector({ THREE, scene, key, halo, physics, controls, dri
     gsap.to(d.fade, { v: 1, duration: instant ? 0 : 0.5, overwrite: 'auto', onUpdate: () => setOpacity(d, d.fade.v) });
     const col = new THREE.Color(d.c.color);
     gsap.to(key.color, { r: col.r * 0.6 + 0.4, g: col.g * 0.6 + 0.4, b: col.b * 0.6 + 0.4, duration: 0.8, overwrite: 'auto' });
-    gsap.to(halo.material.color, { r: col.r, g: col.g, b: col.b, duration: 0.8, overwrite: 'auto' });
   };
 
   api.update = function (i, p) {

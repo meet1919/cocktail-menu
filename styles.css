@@ -229,6 +229,4 @@ body::after {
   height: 100%;
   display: block;
   touch-action: pan-y;
-  -webkit-mask-image: radial-gradient(ellipse 72% 64% at 50% 50%, #000 62%, transparent 100%);
-  mask-image: radial-gradient(ellipse 72% 64% at 50% 50%, #000 62%, transparent 100%);
 }

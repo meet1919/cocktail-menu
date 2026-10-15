@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { quality } from './quality.js';
+import { glassMaterial } from './materials.js';
 
 const SPECS = {
   highball: { H: 14, rb: 3.2, rt: 3.6, w: 0.25, base: 0.9 },
@@ -43,12 +43,7 @@ export function buildGlass(type) {
   const spec = SPECS[type];
   const { pts, inner, size } = type === 'coupe' ? coupe(spec) : straight(spec);
   const geo = new THREE.LatheGeometry(pts.map(p => new THREE.Vector2(p[0], p[1])), 72);
-  const mat = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff, metalness: 0, roughness: 0.04, ior: 1.5, thickness: 0.6,
-    transmission: quality.degraded ? 0 : 1, transparent: true,
-    opacity: quality.degraded ? 0.28 : 1, side: THREE.DoubleSide, envMapIntensity: 1.2,
-    depthWrite: false // lets the transparent liquid inside show through the front wall
-  });
+  const mat = glassMaterial({ color: 0xcfdde8, base: 0.025, rim: 0.85, power: 3.4 });
   const group = new THREE.Group();
   group.add(new THREE.Mesh(geo, mat));
 

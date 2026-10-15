@@ -47,7 +47,7 @@ export function createControls({ camera, canvas, getHit, onNudge, onResize }) {
   canvas.addEventListener('pointercancel', () => { dragging = false; });
 
   function refit() {
-    const extentV = Math.max(framing.h / 0.72, (framing.w / 0.8) / camera.aspect);
+    const extentV = Math.max(framing.h / 0.58, (framing.w / 0.68) / camera.aspect);
     st.tRadius = extentV / (2 * Math.tan(FOV / 2));
     st.tTy = framing.h * 0.45;
   }

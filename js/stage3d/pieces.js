@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { quality } from './quality.js';
+import { glassMaterial } from './materials.js';
 
 function canvasTex(size, draw) {
   const c = document.createElement('canvas');
@@ -49,13 +49,9 @@ const leafMat = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.6, 
 // Returns a mesh plus the physics description for one ingredient, or null for
 // 'splash' (spirits and syrups are poured as a stream instead).
 export function createPiece(kind, color) {
-  const deg = quality.degraded;
   switch (kind) {
     case 'ice': {
-      const mesh = new THREE.Mesh(new RoundedBoxGeometry(2.2, 2.2, 2.2, 3, 0.3), new THREE.MeshPhysicalMaterial({
-        color: 0xdff3ff, roughness: 0.15, ior: 1.31, thickness: 1.5,
-        transmission: deg ? 0 : 0.92, transparent: deg, opacity: deg ? 0.35 : 1
-      }));
+      const mesh = new THREE.Mesh(new RoundedBoxGeometry(2.2, 2.2, 2.2, 3, 0.3), glassMaterial({ color: 0xd8ecff, base: 0.3, rim: 0.95, power: 1.6, roughness: 0.12 }));
       return { mesh, shape: 'box', half: [1.1, 1.1, 1.1], mass: 1, buoy: { ratio: 1.8, depth: 1.2 } };
     }
     case 'lemon': {
