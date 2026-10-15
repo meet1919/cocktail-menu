@@ -12,6 +12,7 @@
     d.onIngredient = (i, j, on) => {
       const li = sections[i].querySelectorAll('li')[j];
       if (li) gsap.to(li, { opacity: on ? 1 : 0.35, color: on ? Bar.COCKTAILS[i].color : '#F3E9DC', duration: 0.3, overwrite: 'auto' });
+      if (Bar.type) Bar.type.lit(i, j, on);
     };
     const triggers = [];
     // switch drinks, then apply the current progress straight away (a fast jump can
